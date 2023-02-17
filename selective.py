@@ -66,7 +66,7 @@ def selective_random(image: Tensor, input_size: Tuple[int] = None) -> Tensor:
     local_blocks = functional.unfold(image, kernel_size, dilation=1, padding=1, stride=1) # [B, elements, blocks]
     local_blocks_c = local_blocks.reshape(
                         (n_batch, n_channel, kernel_size[0] * kernel_size[1], n_block)) # [B, C, elements_each_channel, blocks]
-    random_indices = torch.randint(low=0, high=n_pixels, size=(n_block,))
+    random_indices = torch.randint(low=0, high=n_pixels, size=(n_block,)).to(image.device)
     random_mask = functional.one_hot(random_indices).bool()
     image_rand = torch.masked_select(
                     local_blocks_c.permute(0, 1, 3, 2), 
