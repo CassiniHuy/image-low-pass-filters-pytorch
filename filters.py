@@ -144,33 +144,33 @@ def butterworth(image: Tensor, D0: int, n: int) -> Tensor:
 #### Gaussian
 
 
-def _get_gaussian_weights(size: Tuple[int], sigma: float, device: str = 'cpu') -> Tensor:
+def _get_gaussian_weights(size: Tuple[int], D0: float, device: str = 'cpu') -> Tensor:
     """Get H(u, v) of Gaussian filter.
 
     Args:
         size (Tuple[int]): [H, W].
-        sigma (float): The cutoff frequency.
+        D0 (float): The cutoff frequency.
         device (str, optional): cpu/cuda. Defaults to 'cpu'.
 
     Returns:
         Tensor: [H, W].
     """    
     center_distance = _get_center_distance(size=size, device=device)
-    weights = torch.exp(- (torch.square(center_distance) / (2 * sigma ** 2)))
+    weights = torch.exp(- (torch.square(center_distance) / (2 * D0 ** 2)))
     return weights
 
 
-def gaussian(image: Tensor, sigma: float) -> Tensor:
+def gaussian(image: Tensor, D0: float) -> Tensor:
     """Gaussian low-pass filter for images.
 
     Args:
         image (Tensor): [B, C, H, W].
-        sigma (int): Cutoff frequency.
+        D0 (int): Cutoff frequency.
 
     Returns:
         Tensor: [B, C, H, W].
     """    
-    weights = _get_gaussian_weights(image.shape[-2:], sigma=sigma, device=image.device)
+    weights = _get_gaussian_weights(image.shape[-2:], D0=D0, device=image.device)
     image_fft = _to_freq(image)
     image_fft = image_fft * weights
     image = _to_space(image_fft)
