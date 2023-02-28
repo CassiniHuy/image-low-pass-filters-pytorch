@@ -83,7 +83,7 @@ def _to_space(image_fft: Tensor) -> Tensor:
     """    
     img_ifft_shift = torch.fft.ifftshift(image_fft)
     img_ifft = torch.fft.ifft2(img_ifft_shift)
-    img = torch.abs(img_ifft).clamp(0, 1)
+    img = img_ifft.real.clamp(0, 1)
     return img
 
 
