@@ -24,11 +24,17 @@ $$H(u, v)=e^{-D^2(u, v)/2{D_0}^2}$$
 
 # Usage
 
+Install from pypi:
+
+```
+pip install image-lowpass-filters
+```
+
 examples:
 
 ```python
 import torch
-from preprocess import ideal_bandpass, butterworth, gaussian
+from image_lowpass_filters import ideal_bandpass, butterworth, gaussian
 
 cutoff = 20
 
