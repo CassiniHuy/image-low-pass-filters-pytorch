@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="image-lowpass-filters",
-    version="0.1.1",
+    version="0.1.2",
     author="Cassini Wei",
     author_email="cassiniwei@outlook.com",
     description="Ideal, Butterworth and Gaussian frequency‐domain filters for PyTorch",
