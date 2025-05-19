@@ -5,16 +5,16 @@ Date: 2023/2/16
 
 import torch
 from torch import Tensor
-from typing import Tuple
+from typing import Tuple, Union
 
 
 ### Ideal low-pass
 
-def _get_center_distance(size: Tuple[int], device: str = 'cpu') -> Tensor:
+def _get_center_distance(size: Tuple[int, int], device: Union[str, torch.device] = 'cpu') -> Tensor:
     """Compute the distance of each matrix element to the center.
 
     Args:
-        size (Tuple[int]): [m, n].
+        size (Tuple[int, int]): [m, n].
         device (str, optional): cpu/cuda. Defaults to 'cpu'.
 
     Returns:
@@ -35,12 +35,12 @@ def _get_center_distance(size: Tuple[int], device: str = 'cpu') -> Tensor:
     return dist
 
 
-def _get_ideal_weights(size: Tuple[int], D0: int, lowpass: bool = True, device: str = 'cpu') -> Tensor:
+def _get_ideal_weights(size: Tuple[int, int], D0: Union[int, float], lowpass: bool = True, device: Union[str, torch.device] = 'cpu') -> Tensor:
     """Get H(u, v) of ideal bandpass filter.
 
     Args:
-        size (Tuple[int]): [H, W].
-        D0 (int): The cutoff frequency.
+        size (Tuple[int, int]): [H, W].
+        D0 (Union[int, float]): The cutoff frequency.
         lowpass (bool): True for low-pass filter, otherwise for high-pass filter. Defaults to True.
         device (str, optional): cpu/cuda. Defaults to 'cpu'.
 
@@ -87,31 +87,31 @@ def _to_space(image_fft: Tensor) -> Tensor:
     return img
 
 
-def ideal_bandpass(image: Tensor, D0: int, lowpass: bool = True) -> Tensor:
+def ideal_bandpass(image: Tensor, D0: Union[int, float], lowpass: bool = True) -> Tensor:
     """Low-pass filter for images.
 
     Args:
         image (Tensor): [B, C, H, W].
-        D0 (int): Cutoff frequency.
+        D0 (Union[int, float]): Cutoff frequency.
         lowpass (bool): True for low-pass filter, otherwise for high-pass filter. Defaults to True.
 
     Returns:
         Tensor: [B, C, H, W].
     """    
     img_fft = _to_freq(image)
-    weights = _get_ideal_weights(img_fft.shape[-2:], D0=D0, lowpass=lowpass, device=image.device)
+    weights = _get_ideal_weights((img_fft.shape[-2], img_fft.shape[-1]), D0=D0, lowpass=lowpass, device=image.device)
     img_fft = img_fft * weights
     img = _to_space(img_fft)
     return img
 
 #### Butterworth
 
-def _get_butterworth_weights(size: Tuple[int], D0: int, n: int, device: str = 'cpu') -> Tensor:
+def _get_butterworth_weights(size: Tuple[int, int], D0: Union[int, float], n: int, device: Union[str, torch.device] = 'cpu') -> Tensor:
     """Get H(u, v) of Butterworth filter.
 
     Args:
-        size (Tuple[int]): [H, W].
-        D0 (int): The cutoff frequency.
+        size (Tuple[int, int]): [H, W].
+        D0 (Union[int, float]): The cutoff frequency.
         n (int): Order of Butterworth filters.
         device (str, optional): cpu/cuda. Defaults to 'cpu'.
 
@@ -123,19 +123,19 @@ def _get_butterworth_weights(size: Tuple[int], D0: int, n: int, device: str = 'c
     return weights
 
 
-def butterworth(image: Tensor, D0: int, n: int) -> Tensor:
+def butterworth(image: Tensor, D0: Union[int, float], n: int) -> Tensor:
     """Butterworth low-pass filter for images.
 
     Args:
         image (Tensor): [B, C, H, W].
-        D0 (int): Cutoff frequency.
+        D0 (Union[int, float]): Cutoff frequency.
         n (int): Order of the Butterworth low-pass filter.
 
     Returns:
         Tensor: [B, C, H, W].
     """    
     img_fft = _to_freq(image)
-    weights = _get_butterworth_weights(image.shape[-2:], D0, n, device=image.device)
+    weights = _get_butterworth_weights((image.shape[-2], image.shape[-1]), D0, n, device=image.device)
     img_fft = weights * img_fft
     img = _to_space(img_fft)
     return img
@@ -144,12 +144,12 @@ def butterworth(image: Tensor, D0: int, n: int) -> Tensor:
 #### Gaussian
 
 
-def _get_gaussian_weights(size: Tuple[int], D0: float, device: str = 'cpu') -> Tensor:
+def _get_gaussian_weights(size: Tuple[int, int], D0: Union[int, float], device: Union[str, torch.device] = 'cpu') -> Tensor:
     """Get H(u, v) of Gaussian filter.
 
     Args:
-        size (Tuple[int]): [H, W].
-        D0 (float): The cutoff frequency.
+        size (Tuple[int, int]): [H, W].
+        D0 (Union[int, float]): The cutoff frequency.
         device (str, optional): cpu/cuda. Defaults to 'cpu'.
 
     Returns:
@@ -160,17 +160,17 @@ def _get_gaussian_weights(size: Tuple[int], D0: float, device: str = 'cpu') -> T
     return weights
 
 
-def gaussian(image: Tensor, D0: float) -> Tensor:
+def gaussian(image: Tensor, D0: Union[int, float]) -> Tensor:
     """Gaussian low-pass filter for images.
 
     Args:
         image (Tensor): [B, C, H, W].
-        D0 (int): Cutoff frequency.
+        D0 (Union[int, float]): Cutoff frequency.
 
     Returns:
         Tensor: [B, C, H, W].
     """    
-    weights = _get_gaussian_weights(image.shape[-2:], D0=D0, device=image.device)
+    weights = _get_gaussian_weights((image.shape[-2], image.shape[-1]), D0=D0, device=image.device)
     image_fft = _to_freq(image)
     image_fft = image_fft * weights
     image = _to_space(image_fft)

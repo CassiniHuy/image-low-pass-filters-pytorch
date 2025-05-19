@@ -16,15 +16,15 @@ from typing import Tuple
 # Proceedings of the 29th USENIX Conference on Security Symposium. 2020: 1363-1380.
 
 
-def _get_kernel_size(original_size: Tuple[int], input_size: Tuple[int]) -> Tuple[int]:
+def _get_kernel_size(original_size: Tuple[int, int], input_size: Tuple[int, int] | None) -> Tuple[int, int]:
     """Compute the kernel size for selective filters.
 
     Args:
-        original_size (Tuple[int]): (H, W).
-        input_size (Tuple[int]): (H0, W0).
+        original_size (Tuple[int, int]): (H, W).
+        input_size (Tuple[int, int]): (H0, W0).
 
     Returns:
-        Tuple[int]: [H1, W1].
+        Tuple[int, int]: [H1, W1].
     """    
     if input_size is None:
         input_size = original_size
@@ -33,17 +33,17 @@ def _get_kernel_size(original_size: Tuple[int], input_size: Tuple[int]) -> Tuple
     return kernel_size
 
 
-def selective_median(image: Tensor, input_size: Tuple[int] = None) -> Tensor:
+def selective_median(image: Tensor, input_size: Tuple[int, int] | None = None) -> Tensor:
     """Selective median filter.
 
     Args:
         image (Tensor): [B, C, H, W] or [C, H, W].
-        input_size (Tuple[int], optional): Input size of the mmodel. Defaults to None.
+        input_size (Tuple[int, int], optional): Input size of the mmodel. Defaults to None.
 
     Returns:
         Tensor: [B, C, input_size[0], input_size[1]] or [C, input_size[0], input_size[1]].
     """    
-    kernel_size = _get_kernel_size(image.shape[-2:], input_size)
+    kernel_size = _get_kernel_size((image.shape[-2], image.shape[-1]), input_size)
     if image.dim() == 3:
         image_filtered = filters.median_blur(image.unsqueeze(0), kernel_size)[0]
     else:
@@ -51,17 +51,17 @@ def selective_median(image: Tensor, input_size: Tuple[int] = None) -> Tensor:
     return image_filtered
 
 
-def selective_random(image: Tensor, input_size: Tuple[int] = None) -> Tensor:
+def selective_random(image: Tensor, input_size: Tuple[int, int] | None = None) -> Tensor:
     """Selective random filter.
 
     Args:
         image (Tensor): [B, C, H, W] or [B, C, H, W]
-        input_size (Tuple[int], optional): Input size of the mmodel. Defaults to None.
+        input_size (Tuple[int, int], optional): Input size of the mmodel. Defaults to None.
 
     Returns:
         Tensor: [B, C, input_size[0], input_size[1]] or [C, input_size[0], input_size[1]].
     """    
-    kernel_size = _get_kernel_size(image.shape[-2:], input_size)
+    kernel_size = _get_kernel_size((image.shape[-2], image.shape[-1]), input_size)
     orishape = image.shape
     if len(orishape) == 3:
         image = image.unsqueeze(0)
